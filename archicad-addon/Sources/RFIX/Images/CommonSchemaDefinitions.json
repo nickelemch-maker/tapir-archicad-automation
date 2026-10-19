@@ -8419,6 +8419,59 @@
             "Altitude"
         ]
     },
+    "DimensionDetails": {
+        "type": "object",
+        "properties": {
+            "appearance": {
+                "type": "string",
+                "enum": ["Linear", "Cumulative", "CumulativeStartValue", "Elevation"],
+                "description": "Elevation is a dimension of level markers, as the Level Dimension tool places it in section and elevation windows."
+            },
+            "referencePoint": {
+                "$ref": "#/Coordinate2D",
+                "description": "A point of the dimension line."
+            },
+            "direction": {
+                "$ref": "#/Coordinate2D",
+                "description": "The direction of the dimension line."
+            },
+            "elevationOrigin": {
+                "$ref": "#/DimensionOrigin",
+                "description": "Present only for an elevation dimension: the origin its heights are measured from."
+            },
+            "needPlus": {
+                "type": "boolean",
+                "description": "Present only for an elevation dimension."
+            },
+            "witnessPoints": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "position": {
+                            "$ref": "#/Coordinate2D"
+                        },
+                        "value": {
+                            "type": "number",
+                            "description": "The measured distance of a linear dimension, the height of the point of an elevation dimension, in meters."
+                        },
+                        "text": {
+                            "type": "string",
+                            "description": "The text of the dimension note."
+                        },
+                        "elementId": {
+                            "$ref": "#/ElementId",
+                            "description": "Present only for an associative point: the element it is attached to."
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": ["position", "value", "text"]
+                }
+            }
+        },
+        "additionalProperties": false,
+        "required": ["appearance", "referencePoint", "direction", "witnessPoints"]
+    },
     "LevelDimensionDetails": {
         "type": "object",
         "properties": {
@@ -8625,6 +8678,9 @@
             },
             {
                 "$ref": "#/LevelDimensionDetails"
+            },
+            {
+                "$ref": "#/DimensionDetails"
             },
             {
                 "$ref": "#/NotYetSupportedElementTypeDetails"

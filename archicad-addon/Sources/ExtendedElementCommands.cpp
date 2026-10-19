@@ -5368,7 +5368,20 @@ GS::Optional<GS::UniString> CreateAssociativeDimensionsOnSectionCommand::GetInpu
                         },
                         "beginPlane": { "type": "boolean" },
                         "totalSizePlane": { "type": "boolean" },
-                        "placeOnTop": { "type": "boolean" }
+                        "placeOnTop": { "type": "boolean" },
+                        "appearance": {
+                            "type": "string",
+                            "enum": ["Linear", "Elevation"],
+                            "description": "Linear (the default) creates a dimension chain. Elevation creates an elevation dimension instead: a level marker with the height of each point, stacked along the dimension line (what the Level Dimension tool places in section and elevation windows)."
+                        },
+                        "elevationOrigin": {
+                            "$ref": "#/DimensionOrigin",
+                            "description": "Only with appearance Elevation: the origin the heights are measured from. Optional, by default the dimension tool default is kept."
+                        },
+                        "needPlus": {
+                            "type": "boolean",
+                            "description": "Only with appearance Elevation: show a plus sign for positive heights. Optional, by default the dimension tool default is kept."
+                        }
                     },
                     "additionalProperties": false,
                     "required": ["referencePoint", "preset"]
@@ -5450,6 +5463,25 @@ GS::ObjectState CreateAssociativeDimensionsOnSectionCommand::Execute (const GS::
                 Get2DCoordinateFromObjectState (*data.Get ("referencePoint")),
                 {directionCoord.x, directionCoord.y}
             );
+
+            GS::UniString appearance ("Linear");
+            data.Get ("appearance", appearance);
+            if (appearance == "Elevation") {
+                element.dimension.dimAppear = APIApp_Elev;
+                GS::UniString originStr;
+                if (data.Get ("elevationOrigin", originStr)) {
+                    API_DimOriginID origin = APIDimOrigin_ProjectZero;
+                    if (!ParseDimensionOriginString (originStr, origin)) {
+                        elements.Push (CreateErrorResponse (APIERR_BADPARS, "Unknown 'elevationOrigin' value: " + originStr));
+                        continue;
+                    }
+                    element.dimension.ed_origin = origin;
+                }
+                data.Get ("needPlus", element.dimension.ed_needPlus);
+            } else if (appearance != "Linear") {
+                elements.Push (CreateErrorResponse (APIERR_BADPARS, "Unknown 'appearance' value: " + appearance));
+                continue;
+            }
 
             auto error = PopulateAssociativeDimensionMemo (witnessPoints, element, memo);
 

@@ -3395,7 +3395,20 @@ var gCommands = [{
                         },
                         "beginPlane": { "type": "boolean" },
                         "totalSizePlane": { "type": "boolean" },
-                        "placeOnTop": { "type": "boolean" }
+                        "placeOnTop": { "type": "boolean" },
+                        "appearance": {
+                            "type": "string",
+                            "enum": ["Linear", "Elevation"],
+                            "description": "Linear (the default) creates a dimension chain. Elevation creates an elevation dimension instead: a level marker with the height of each point, stacked along the dimension line (what the Level Dimension tool places in section and elevation windows)."
+                        },
+                        "elevationOrigin": {
+                            "$ref": "#/DimensionOrigin",
+                            "description": "Only with appearance Elevation: the origin the heights are measured from. Optional, by default the dimension tool default is kept."
+                        },
+                        "needPlus": {
+                            "type": "boolean",
+                            "description": "Only with appearance Elevation: show a plus sign for positive heights. Optional, by default the dimension tool default is kept."
+                        }
                     },
                     "additionalProperties": false,
                     "required": ["referencePoint", "preset"]
