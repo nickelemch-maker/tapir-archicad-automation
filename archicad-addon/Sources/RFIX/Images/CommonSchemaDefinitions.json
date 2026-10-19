@@ -8544,6 +8544,45 @@
             "paragraphCount"
         ]
     },
+    "RailingDetails": {
+        "type": "object",
+        "properties": {
+            "zCoordinate": {
+                "type": "number",
+                "description": "Absolute elevation of the railing base."
+            },
+            "bottomOffset": {
+                "type": "number",
+                "description": "Base of the railing relative to its home story."
+            },
+            "referenceLinePoints": {
+                "type": "array",
+                "description": "The railing's reference line, an open polyline.",
+                "items": { "$ref": "#/Coordinate2D" }
+            },
+            "height": {
+                "type": "number",
+                "description": "Height of the first railing segment."
+            },
+            "refLineLocation": {
+                "type": "string",
+                "description": "Position of the first segment relative to the reference line.",
+                "enum": ["Left", "Center", "Right"]
+            },
+            "segmentCount": {
+                "type": "integer"
+            }
+        },
+        "additionalProperties": false,
+        "required": [
+            "zCoordinate",
+            "bottomOffset",
+            "referenceLinePoints",
+            "height",
+            "refLineLocation",
+            "segmentCount"
+        ]
+    },
     "NotYetSupportedElementTypeDetails": {
         "type": "object",
         "properties": {
@@ -8625,6 +8664,9 @@
             },
             {
                 "$ref": "#/LevelDimensionDetails"
+            },
+            {
+                "$ref": "#/RailingDetails"
             },
             {
                 "$ref": "#/NotYetSupportedElementTypeDetails"

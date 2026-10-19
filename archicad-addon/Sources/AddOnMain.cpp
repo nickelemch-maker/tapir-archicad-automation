@@ -468,6 +468,10 @@ GSErrCode Initialize (void)
             elementCommands, "1.5.0",
             "Creates Stair elements based on the given baseline and parameters."
         );
+        err |= RegisterCommand<CreateRailingsCommand> (
+            elementCommands, "1.7.3",
+            "Creates Railing elements along the given open reference line (at least 2 points), optionally based on a favorite."
+        );
         err |= RegisterCommand<CreateSlabsCommand> (
             elementCommands, "1.0.3",
             "Creates Slab elements based on the given parameters."

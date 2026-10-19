@@ -2852,6 +2852,69 @@ var gCommands = [{
         ]
     }
             },{
+                "name": "CreateRailings",
+                "version": "1.7.3",
+                "description": "Creates Railing elements along the given open reference line (at least 2 points), optionally based on a favorite.",
+                "inputScheme": {
+        "type": "object",
+        "properties": {
+            "railingsData": {
+                "type": "array",
+                "description": "Array of data to create Railing elements.",
+                "items": {
+                    "type": "object",
+                    "description": "The parameters of the new Railing.",
+                    "properties": {
+                        "favoriteName": {
+                            "type": "string",
+                            "description": "Optional name of a favorite to base the new element on. Its settings are applied first, then the explicitly given fields override them."
+                        },
+                        "referenceLinePoints": {
+                            "type": "array",
+                            "description": "2D coordinates of the railing's reference line, an open polyline. Minimum 2 points.",
+                            "items": { "$ref": "#/Coordinate2D" },
+                            "minItems": 2
+                        },
+                        "zCoordinate": {
+                            "type": "number",
+                            "description": "The Z coordinate (absolute elevation) of the railing base."
+                        },
+                        "floorIndex": {
+                            "type": "integer",
+                            "description": "Optional floor index. If omitted, derived from zCoordinate."
+                        },
+                        "height": {
+                            "type": "number",
+                            "description": "Optional height of the railing segments (top of the top rail above the railing base). Applied to all segments.",
+                            "exclusiveMinimum": 0.0
+                        },
+                        "refLineLocation": {
+                            "type": "string",
+                            "description": "Optional position of the railing body relative to the reference line, looking from the first point to the last. Applied to all segments.",
+                            "enum": ["Left", "Center", "Right"]
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": ["referenceLinePoints", "zCoordinate"]
+                }
+            }
+        },
+        "additionalProperties": false,
+        "required": ["railingsData"]
+    },
+                "outputScheme": {
+        "type": "object",
+        "properties": {
+            "elements": {
+                "$ref": "#/ElementIdsOrErrors"
+            }
+        },
+        "additionalProperties": false,
+        "required": [
+            "elements"
+        ]
+    }
+            },{
                 "name": "CreateSlabs",
                 "version": "1.0.3",
                 "description": "Creates Slab elements based on the given parameters.",

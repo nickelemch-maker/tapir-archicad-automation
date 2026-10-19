@@ -4117,6 +4117,139 @@ GS::Optional<GS::ObjectState> CreateStairsCommand::SetTypeSpecificParameters (AP
     return {};
 }
 
+CreateRailingsCommand::CreateRailingsCommand () :
+    CreateElementsCommandBase ("CreateRailings", API_RailingID, "railingsData")
+{
+}
+
+GS::Optional<GS::UniString> CreateRailingsCommand::GetInputParametersSchema () const
+{
+    return R"({
+        "type": "object",
+        "properties": {
+            "railingsData": {
+                "type": "array",
+                "description": "Array of data to create Railing elements.",
+                "items": {
+                    "type": "object",
+                    "description": "The parameters of the new Railing.",
+                    "properties": {
+                        "favoriteName": {
+                            "type": "string",
+                            "description": "Optional name of a favorite to base the new element on. Its settings are applied first, then the explicitly given fields override them."
+                        },
+                        "referenceLinePoints": {
+                            "type": "array",
+                            "description": "2D coordinates of the railing's reference line, an open polyline. Minimum 2 points.",
+                            "items": { "$ref": "#/Coordinate2D" },
+                            "minItems": 2
+                        },
+                        "zCoordinate": {
+                            "type": "number",
+                            "description": "The Z coordinate (absolute elevation) of the railing base."
+                        },
+                        "floorIndex": {
+                            "type": "integer",
+                            "description": "Optional floor index. If omitted, derived from zCoordinate."
+                        },
+                        "height": {
+                            "type": "number",
+                            "description": "Optional height of the railing segments (top of the top rail above the railing base). Applied to all segments.",
+                            "exclusiveMinimum": 0.0
+                        },
+                        "refLineLocation": {
+                            "type": "string",
+                            "description": "Optional position of the railing body relative to the reference line, looking from the first point to the last. Applied to all segments.",
+                            "enum": ["Left", "Center", "Right"]
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": ["referenceLinePoints", "zCoordinate"]
+                }
+            }
+        },
+        "additionalProperties": false,
+        "required": ["railingsData"]
+    })";
+}
+
+static API_RailingRefLineLocationID ParseRailingRefLineLocation (const GS::UniString& location)
+{
+    if (location == "Left") {
+        return APIRLL_Left;
+    }
+    if (location == "Right") {
+        return APIRLL_Right;
+    }
+    return APIRLL_Center;
+}
+
+GS::Optional<GS::ObjectState> CreateRailingsCommand::SetTypeSpecificParameters (API_Element& element, API_ElementMemo& memo, const Stories& stories, const GS::ObjectState& parameters) const
+{
+    GS::Array<GS::ObjectState> referenceLinePoints;
+    parameters.Get ("referenceLinePoints", referenceLinePoints);
+    if (referenceLinePoints.GetSize () < 2) {
+        return CreateErrorResponse (APIERR_BADPARS, "referenceLinePoints must have at least 2 points.");
+    }
+
+    double zCoordinate = 0.0;
+    parameters.Get ("zCoordinate", zCoordinate);
+    const auto floorIndexAndOffset = ResolveFloorIndexAndOffset (parameters, "floorIndex", zCoordinate, stories);
+    element.header.floorInd = floorIndexAndOffset.first;
+    element.railing.bottomOffset = floorIndexAndOffset.second;
+
+    auto height = GetOptionalDouble (parameters, "height");
+    GS::UniString refLineLocationStr;
+    const bool hasRefLineLocation = parameters.Get ("refLineLocation", refLineLocationStr);
+    const API_RailingRefLineLocationID refLineLocation = ParseRailingRefLineLocation (refLineLocationStr);
+
+    // The segments are generated from defSegment, but a default memo may already carry
+    // segment instances - set both so neither wins over the given values.
+    if (height.HasValue ()) {
+        element.railing.defSegment.height = height.Get ();
+    }
+    if (hasRefLineLocation) {
+        element.railing.defSegment.refLineLocation = refLineLocation;
+    }
+    if (memo.railingSegments != nullptr) {
+        const GSSize nSegments = BMGetPtrSize (reinterpret_cast<GSPtr> (memo.railingSegments)) / sizeof (API_RailingSegmentType);
+        for (GSSize i = 0; i < nSegments; ++i) {
+            if (height.HasValue ()) {
+                memo.railingSegments[i].height = height.Get ();
+            }
+            if (hasRefLineLocation) {
+                memo.railingSegments[i].refLineLocation = refLineLocation;
+            }
+        }
+    }
+
+    // The reference line: an open polyline in memo.coords (1-based, index 0 unused), with
+    // one z value per vertex relative to the railing base, as in the DevKit's Element_Test
+    // example (Do_CreateRailing).
+    if (memo.coords != nullptr) {
+        BMKillHandle (reinterpret_cast<GSHandle*> (&memo.coords));
+    }
+    if (memo.parcs != nullptr) {
+        BMKillHandle (reinterpret_cast<GSHandle*> (&memo.parcs));
+    }
+    if (memo.polyZCoords != nullptr) {
+        BMKillHandle (reinterpret_cast<GSHandle*> (&memo.polyZCoords));
+    }
+
+    const Int32 nCoords = static_cast<Int32> (referenceLinePoints.GetSize ());
+    memo.coords = reinterpret_cast<API_Coord**> (BMAllocateHandle ((nCoords + 1) * sizeof (API_Coord), ALLOCATE_CLEAR, 0));
+    memo.polyZCoords = reinterpret_cast<double**> (BMAllocateHandle ((nCoords + 1) * sizeof (double), ALLOCATE_CLEAR, 0));
+    if (memo.coords == nullptr || memo.polyZCoords == nullptr) {
+        return CreateErrorResponse (APIERR_MEMFULL, "Failed to allocate the railing reference line.");
+    }
+    for (Int32 i = 0; i < nCoords; ++i) {
+        (*memo.coords)[i + 1] = Get2DCoordinateFromObjectState (referenceLinePoints[i]);
+    }
+    element.railing.nVertices = static_cast<UInt32> (nCoords);
+
+    return {};
+}
+
 CreateWindowsCommand::CreateWindowsCommand () :
     CommandBase (CommonSchema::Used)
 {

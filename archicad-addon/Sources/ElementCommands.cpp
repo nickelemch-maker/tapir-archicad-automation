@@ -1106,6 +1106,32 @@ GS::ObjectState GetDetailsOfElementsCommand::Execute (const GS::ObjectState& par
                 AddBeamSectionFromMemo (elem.header.guid, typeSpecificDetails);
             } break;
 
+            case API_RailingID: {
+                typeSpecificDetails.Add ("zCoordinate", GetZPos (elem.header.floorInd, elem.railing.bottomOffset, stories));
+                typeSpecificDetails.Add ("bottomOffset", elem.railing.bottomOffset);
+                API_ElementMemo railingMemo = {};
+                const GS::OnExit railingMemoGuard ([&railingMemo] () { ACAPI_DisposeElemMemoHdls (&railingMemo); });
+                const auto& referenceLinePoints = typeSpecificDetails.AddList<GS::ObjectState> ("referenceLinePoints");
+                if (ACAPI_Element_GetMemo (elem.header.guid, &railingMemo, APIMemoMask_Polygon | APIMemoMask_RailingSegment) == NoError) {
+                    if (railingMemo.coords != nullptr) {
+                        for (UInt32 i = 1; i <= elem.railing.nVertices; ++i) {
+                            referenceLinePoints (Create2DCoordinateObjectState ((*railingMemo.coords)[i]));
+                        }
+                    }
+                }
+                // All segments share the height when it was set by CreateRailings; report the
+                // first segment's, and the default segment's for a railing without any.
+                double height = elem.railing.defSegment.height;
+                API_RailingRefLineLocationID refLineLocation = elem.railing.defSegment.refLineLocation;
+                if (railingMemo.railingSegments != nullptr && BMGetPtrSize (reinterpret_cast<GSPtr> (railingMemo.railingSegments)) >= (GSSize) sizeof (API_RailingSegmentType)) {
+                    height = railingMemo.railingSegments[0].height;
+                    refLineLocation = railingMemo.railingSegments[0].refLineLocation;
+                }
+                typeSpecificDetails.Add ("height", height);
+                typeSpecificDetails.Add ("refLineLocation", refLineLocation == APIRLL_Left ? "Left" : (refLineLocation == APIRLL_Right ? "Right" : "Center"));
+                typeSpecificDetails.Add ("segmentCount", (Int32) elem.railing.nSegments);
+            } break;
+
             case API_SlabID:
                 typeSpecificDetails.Add ("structureType", StructureTypeToString (elem.slab.modelElemStructureType));
                 typeSpecificDetails.Add ("thickness", elem.slab.thickness);
