@@ -10,7 +10,7 @@ Every function of the Archicad API (C functions, the C++ API and the Archicad 25
 | C functions of Archicad 25/26 only, and their command ids | 21 % | 90 | 19 |  |  |  | 71 |  | 49 |
 | C++ API (ACAPI::, IFCAPI::) | 29 % | 1576 | 465 |  |  |  | 1111 |  | 255 |
 
-Archicad 25–30 DevKits; updated 2026-10-19 14:16 UTC.
+Archicad 25–30 DevKits; updated 2026-10-19 14:24 UTC.
 
 | | Status |
 |---|---|
@@ -173,7 +173,7 @@ Names are the newest ones; older names (renamed functions, AC25/26 command ids) 
 - ⬜ `ACAPI_Element_GetExtent3D` – Returns the model extent of the current database. <sub>(was `APIDb_GetExtent3DID`)</sub>
 - ✅ `ACAPI_Element_GetHeader` – Returns general information on the given element.
 - ⬜ `ACAPI_Element_GetHotspots` – Retrieves the hotspots of the given element.
-- ✅ `ACAPI_Element_GetMemo` — [#1](https://github.com/ENZYME-APD/tapir-archicad-automation/pull/1 "Add CreateRailings and railing details in GetDetailsOfElements")
+- ✅ `ACAPI_Element_GetMemo` — [#2](https://github.com/ENZYME-APD/tapir-archicad-automation/pull/2 "Elevation dimensions on sections and dimension details"), [#1](https://github.com/ENZYME-APD/tapir-archicad-automation/pull/1 "Add CreateRailings and railing details in GetDetailsOfElements")
 - ⬜ `ACAPI_Element_GetMemo_ExternalHierarchical` <sub>AC27–30</sub> – @brief Retrieves all additional information of the sub-elements of an external hierarchical element.
 - ⬜ `ACAPI_Element_GetMoreQuantities` – Returns information on the quantities parameters of multiple elements of the same type.
 - ⬜ `ACAPI_Element_GetOpeningTransformation` – Returns the position and the normal vector of the given opening. <sub>(was `APIAny_GetOpeningTransformationID`)</sub>
@@ -513,7 +513,7 @@ Names are the newest ones; older names (renamed functions, AC25/26 command ids) 
 - ➖ `ACAPI_DisposeAttrDefsHdlsExt` – Frees the memory occupied by all of the attribute definition handles. *(memory management)*
 - ➖ `ACAPI_DisposeBeamRelationHdls` – Frees the memory occupied by all allocated beam relation handles. *(memory management)*
 - ➖ `ACAPI_DisposeBeamSegmentRelationHdls` – Frees the memory occupied by all the allocated beam segment relation handles. *(memory management)*
-- ➖ `ACAPI_DisposeElemMemoHdls` – Frees the memory occupied by all of the allocated memo handles. — [#1](https://github.com/ENZYME-APD/tapir-archicad-automation/pull/1 "Add CreateRailings and railing details in GetDetailsOfElements") *(memory management)*
+- ➖ `ACAPI_DisposeElemMemoHdls` – Frees the memory occupied by all of the allocated memo handles. — [#2](https://github.com/ENZYME-APD/tapir-archicad-automation/pull/2 "Elevation dimensions on sections and dimension details"), [#1](https://github.com/ENZYME-APD/tapir-archicad-automation/pull/1 "Add CreateRailings and railing details in GetDetailsOfElements") *(memory management)*
 - ➖ `ACAPI_DisposeParagraphsHdl` – Frees the memory occupied by a handle to an array of @ref API_ParagraphType. *(memory management)*
 - ➖ `ACAPI_DisposeRoomRelationHdls` – Frees the memory occupied by all allocated room relation handles. *(memory management)*
 - ➖ `ACAPI_DisposeWallRelationHdls` – Frees the memory occupied by all allocated wall relation handles. *(memory management)*
