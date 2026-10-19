@@ -1266,6 +1266,44 @@ GS::ObjectState GetDetailsOfElementsCommand::Execute (const GS::ObjectState& par
                 break;
             }
 
+            case API_DimensionID: {
+                // Linear and elevation dimensions (the latter is what the Level Dimension tool
+                // places in section and elevation windows). "value" is the measured distance
+                // for a linear chain and the height of the point for an elevation dimension.
+                const char* appearance = "Linear";
+                switch (elem.dimension.dimAppear) {
+                    case APIApp_Cumu:   appearance = "Cumulative"; break;
+                    case APIApp_CumuSv: appearance = "CumulativeStartValue"; break;
+                    case APIApp_Elev:   appearance = "Elevation"; break;
+                    default:            break;
+                }
+                typeSpecificDetails.Add ("appearance", appearance);
+                typeSpecificDetails.Add ("referencePoint", Create2DCoordinateObjectState (elem.dimension.refC));
+                typeSpecificDetails.Add ("direction", Create2DCoordinateObjectState ({elem.dimension.direction.x, elem.dimension.direction.y}));
+                if (elem.dimension.dimAppear == APIApp_Elev) {
+                    typeSpecificDetails.Add ("elevationOrigin", DimensionOriginToString (elem.dimension.ed_origin));
+                    typeSpecificDetails.Add ("needPlus", elem.dimension.ed_needPlus);
+                }
+                API_ElementMemo dimensionMemo = {};
+                const GS::OnExit dimensionMemoGuard ([&dimensionMemo] () { ACAPI_DisposeElemMemoHdls (&dimensionMemo); });
+                const auto& witnessPoints = typeSpecificDetails.AddList<GS::ObjectState> ("witnessPoints");
+                if (ACAPI_Element_GetMemo (elem.header.guid, &dimensionMemo, APIMemoMask_All) == NoError && dimensionMemo.dimElems != nullptr) {
+                    for (Int32 i = 0; i < elem.dimension.nDimElem; ++i) {
+                        const API_DimElem& dimElem = (*dimensionMemo.dimElems)[i];
+                        GS::ObjectState witnessPoint;
+                        witnessPoint.Add ("position", Create2DCoordinateObjectState (dimElem.pos));
+                        witnessPoint.Add ("value", dimElem.dimVal);
+                        // contentUStr is left alone: who owns it after GetMemo is not documented.
+                        witnessPoint.Add ("text", GS::UniString (dimElem.note.content));
+                        if (dimElem.base.base.guid != APINULLGuid) {
+                            witnessPoint.Add ("elementId", CreateGuidObjectState (dimElem.base.base.guid));
+                        }
+                        witnessPoints (witnessPoint);
+                    }
+                }
+                break;
+            }
+
             case API_ObjectID:
             case API_LampID:
                 AddObjectLampDetails (typeSpecificDetails, elem, stories);
